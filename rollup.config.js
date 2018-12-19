@@ -3,6 +3,15 @@ import commonjs from 'rollup-plugin-commonjs';
 import pkg from './package.json';
 import path from 'path';
 import multiEntry from 'rollup-plugin-multi-entry';
+import replace from 'rollup-plugin-replace';
+
+const replaceVersion = replace({
+  include: 'src/js/version.js',
+  delimiters: ['##', '##'],
+  values: {
+    VERSION: pkg.version
+  }
+});
 
 function fixMobiledocImport() {
   return {
@@ -45,6 +54,7 @@ export default [
       sourcemap: true
     },
     plugins: [
+      replaceVersion,
       fixMobiledocImport(),
       resolve() // so Rollup can find `ms`
     ]
@@ -59,6 +69,7 @@ export default [
       exports: 'named'
     },
     plugins: [
+      replaceVersion,
       fixMobiledocImport(),
       resolve() // so Rollup can find `ms`
     ]
@@ -79,6 +90,7 @@ export default [
     },
     plugins: [
       multiEntry(),
+      replaceVersion,
       fixMobiledocImport(),
       resolve() // so Rollup can find `ms`
     ]
