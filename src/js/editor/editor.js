@@ -2,16 +2,27 @@ import Tooltip from '../views/tooltip';
 import PostEditor from './post';
 import ImageCard from '../cards/image';
 import { DIRECTION } from '../utils/key';
-import mobiledocParsers from '../parsers/mobiledoc';
+import mobiledocParsers from '../parsers/mobiledoc/index';
 import HTMLParser from '../parsers/html';
 import DOMParser from '../parsers/dom';
-import Renderer  from 'mobiledoc-kit/renderers/editor-dom';
+import Renderer from 'mobiledoc-kit/renderers/editor-dom';
 import RenderTree from 'mobiledoc-kit/models/render-tree';
-import mobiledocRenderers from '../renderers/mobiledoc';
-import { MOBILEDOC_VERSION } from 'mobiledoc-kit/renderers/mobiledoc';
+import mobiledocRenderers, {
+  MOBILEDOC_VERSION
+} from '../renderers/mobiledoc/index';
 import { mergeWithOptions } from '../utils/merge';
-import { normalizeTagName, clearChildNodes, serializeHTML } from '../utils/dom-utils';
-import { forEach, filter, contains, values, detect } from '../utils/array-utils';
+import {
+  normalizeTagName,
+  clearChildNodes,
+  serializeHTML
+} from '../utils/dom-utils';
+import {
+  forEach,
+  filter,
+  contains,
+  values,
+  detect
+} from '../utils/array-utils';
 import { setData } from '../utils/element-utils';
 import Cursor from '../utils/cursor';
 import Range from '../utils/cursor/range';
@@ -20,7 +31,10 @@ import Environment from '../utils/environment';
 import PostNodeBuilder from '../models/post-node-builder';
 import { DEFAULT_TEXT_INPUT_HANDLERS } from './text-input-handlers';
 import {
-  DEFAULT_KEY_COMMANDS, buildKeyCommand, findKeyCommands, validateKeyCommand
+  DEFAULT_KEY_COMMANDS,
+  buildKeyCommand,
+  findKeyCommands,
+  validateKeyCommand
 } from './key-commands';
 import { CARD_MODES } from '../models/card';
 import assert from '../utils/assert';
@@ -49,10 +63,10 @@ const defaults = {
   cards: [],
   atoms: [],
   cardOptions: {},
-  unknownCardHandler: ({env}) => {
+  unknownCardHandler: ({ env }) => {
     throw new MobiledocError(`Unknown card encountered: ${env.name}`);
   },
-  unknownAtomHandler: ({env}) => {
+  unknownAtomHandler: ({ env }) => {
     throw new MobiledocError(`Unknown atom encountered: ${env.name}`);
   },
   mobiledoc: null,
@@ -120,9 +134,11 @@ class Editor {
    * @return {Editor}
    * @public
    */
-  constructor(options={}) {
-    assert('editor create accepts an options object. For legacy usage passing an element for the first argument, consider the `html` option for loading DOM or HTML posts. For other cases call `editor.render(domNode)` after editor creation',
-          (options && !options.nodeType));
+  constructor(options = {}) {
+    assert(
+      'editor create accepts an options object. For legacy usage passing an element for the first argument, consider the `html` option for loading DOM or HTML posts. For other cases call `editor.render(domNode)` after editor creation',
+      options && !options.nodeType
+    );
     this._views = [];
     this.isEditable = true;
     this._parserPlugins = options.parserPlugins || [];
@@ -134,14 +150,31 @@ class Editor {
     DEFAULT_KEY_COMMANDS.forEach(kc => this.registerKeyCommand(kc));
 
     this._logManager = new LogManager();
-    this._parser   = new DOMParser(this.builder);
-    let {cards, atoms, unknownCardHandler, unknownAtomHandler, cardOptions} = this;
-    this._renderer = new Renderer(this, cards, atoms, unknownCardHandler, unknownAtomHandler, cardOptions);
+    this._parser = new DOMParser(this.builder);
+    let {
+      cards,
+      atoms,
+      unknownCardHandler,
+      unknownAtomHandler,
+      cardOptions
+    } = this;
+    this._renderer = new Renderer(
+      this,
+      cards,
+      atoms,
+      unknownCardHandler,
+      unknownAtomHandler,
+      cardOptions
+    );
 
     this.post = this.loadPost();
     this._renderTree = new RenderTree(this.post);
 
-    this._editHistory = new EditHistory(this, this.undoDepth, this.undoBlockTimeout);
+    this._editHistory = new EditHistory(
+      this,
+      this.undoDepth,
+      this.undoBlockTimeout
+    );
     this._eventManager = new EventManager(this);
     this._mutationHandler = new MutationHandler(this);
     this._editState = new EditState(this);
@@ -158,7 +191,7 @@ class Editor {
    * @param {Array} [logTypes=[]] If present, only the given log types will be logged.
    * @public
    */
-  enableLogging(logTypes=[]) {
+  enableLogging(logTypes = []) {
     if (logTypes.length === 0) {
       this._logManager.enableAll();
     } else {
@@ -186,17 +219,19 @@ class Editor {
    * @type {PostNodeBuilder}
    */
   get builder() {
-    if (!this._builder) { this._builder = new PostNodeBuilder(); }
+    if (!this._builder) {
+      this._builder = new PostNodeBuilder();
+    }
     return this._builder;
   }
 
   loadPost() {
-    let {mobiledoc, html} = this;
+    let { mobiledoc, html } = this;
     if (mobiledoc) {
       return mobiledocParsers.parse(this.builder, mobiledoc);
     } else if (html) {
       if (typeof html === 'string') {
-        let options = {plugins: this._parserPlugins};
+        let options = { plugins: this._parserPlugins };
         return new HTMLParser(this.builder, options).parse(this.html);
       } else {
         let dom = html;
@@ -212,8 +247,10 @@ class Editor {
 
     // if we haven't rendered this post's renderNode before, mark it dirty
     if (!postRenderNode.element) {
-      assert('Must call `render` before `rerender` can be called',
-             this.hasRendered);
+      assert(
+        'Must call `render` before `rerender` can be called',
+        this.hasRendered
+      );
       postRenderNode.element = this.element;
       postRenderNode.markDirty();
     }
@@ -231,9 +268,11 @@ class Editor {
    * @public
    */
   render(element) {
-    assert('Cannot render an editor twice. Use `rerender` to update the ' +
-           'rendering of an existing editor instance.',
-           !this.hasRendered);
+    assert(
+      'Cannot render an editor twice. Use `rerender` to update the ' +
+        'rendering of an existing editor instance.',
+      !this.hasRendered
+    );
 
     element.spellcheck = this.spellcheck;
 
@@ -270,14 +309,18 @@ class Editor {
   }
 
   _addTooltip() {
-    this.addView(new Tooltip({
-      rootElement: this.element,
-      showForTag: 'a'
-    }));
+    this.addView(
+      new Tooltip({
+        rootElement: this.element,
+        showForTag: 'a'
+      })
+    );
   }
 
   get keyCommands() {
-    if (!this._keyCommands) { this._keyCommands = []; }
+    if (!this._keyCommands) {
+      this._keyCommands = [];
+    }
     return this._keyCommands;
   }
 
@@ -299,11 +342,11 @@ class Editor {
    * @public
    */
   unregisterKeyCommands(name) {
-    for(let i = this.keyCommands.length-1; i > -1; i--) {
+    for (let i = this.keyCommands.length - 1; i > -1; i--) {
       let keyCommand = this.keyCommands[i];
 
-      if(keyCommand.name === name) {
-        this.keyCommands.splice(i,1);
+      if (keyCommand.name === name) {
+        this.keyCommands.splice(i, 1);
       }
     }
   }
@@ -313,9 +356,11 @@ class Editor {
    * cursor in the new position.
    * @public
    */
-  deleteAtPosition(position, direction, {unit}) {
+  deleteAtPosition(position, direction, { unit }) {
     this.run(postEditor => {
-      let nextPosition = postEditor.deleteAtPosition(position, direction, {unit});
+      let nextPosition = postEditor.deleteAtPosition(position, direction, {
+        unit
+      });
       postEditor.setRange(nextPosition);
     });
   }
@@ -336,12 +381,14 @@ class Editor {
   /**
    * @private
    */
-  performDelete({direction, unit}={direction: DIRECTION.BACKWARD, unit: 'char'}) {
+  performDelete(
+    { direction, unit } = { direction: DIRECTION.BACKWARD, unit: 'char' }
+  ) {
     let { range } = this;
 
     this.runCallbacks(CALLBACK_QUEUES.WILL_DELETE, [range, direction, unit]);
     if (range.isCollapsed) {
-      this.deleteAtPosition(range.head, direction, {unit});
+      this.deleteAtPosition(range.head, direction, { unit });
     } else {
       this.deleteRange(range);
     }
@@ -349,7 +396,9 @@ class Editor {
   }
 
   handleNewline(event) {
-    if (!this.hasCursor()) { return; }
+    if (!this.hasCursor()) {
+      return;
+    }
 
     event.preventDefault();
 
@@ -357,7 +406,7 @@ class Editor {
     this.run(postEditor => {
       let cursorSection;
       if (!range.isCollapsed) {
-        let nextPosition  = postEditor.deleteRange(range);
+        let nextPosition = postEditor.deleteRange(range);
         cursorSection = nextPosition.section;
         if (cursorSection && cursorSection.isBlank) {
           postEditor.setRange(cursorSection.headPosition());
@@ -367,9 +416,15 @@ class Editor {
 
       // Above logic might delete redundant range, so callback must run after it.
       let defaultPrevented = false;
-      const event = { preventDefault() { defaultPrevented = true; } };
+      const event = {
+        preventDefault() {
+          defaultPrevented = true;
+        }
+      };
       this.runCallbacks(CALLBACK_QUEUES.WILL_HANDLE_NEWLINE, [event]);
-      if (defaultPrevented) { return; }
+      if (defaultPrevented) {
+        return;
+      }
 
       cursorSection = postEditor.splitSection(range.head)[1];
       postEditor.setRange(cursorSection.headPosition());
@@ -442,7 +497,7 @@ class Editor {
     this._postDidChange();
   }
 
-  _reparseSections(sections=[]) {
+  _reparseSections(sections = []) {
     let currentRange;
     sections.forEach(section => {
       this._parser.reparseSection(section, this._renderTree);
@@ -472,9 +527,8 @@ class Editor {
   // FIXME this should be able to be removed now -- if any sections are detached,
   // it's due to a bug in the code.
   _removeDetachedSections() {
-    forEach(
-      filter(this.post.sections, s => !s.renderNode.isAttached()),
-      s => s.renderNode.scheduleForRemoval()
+    forEach(filter(this.post.sections, s => !s.renderNode.isAttached()), s =>
+      s.renderNode.scheduleForRemoval()
     );
   }
 
@@ -514,9 +568,9 @@ class Editor {
     let matchesFn;
     if (typeof markup === 'string') {
       let tagName = normalizeTagName(markup);
-      matchesFn = (m) => m.tagName === tagName;
+      matchesFn = m => m.tagName === tagName;
     } else {
-      matchesFn = (m) => m === markup;
+      matchesFn = m => m === markup;
     }
 
     return !!detect(this.activeMarkups, matchesFn);
@@ -527,8 +581,8 @@ class Editor {
    * @return {Mobiledoc} Serialized mobiledoc
    * @public
    */
-  serialize(version=MOBILEDOC_VERSION) {
-    return this.serializePost(this.post, 'mobiledoc', {version});
+  serialize(version = MOBILEDOC_VERSION) {
+    return this.serializePost(this.post, 'mobiledoc', { version });
   }
 
   /**
@@ -554,10 +608,12 @@ class Editor {
    * @return {Object|String}
    * @private
    */
-  serializePost(post, format, options={}) {
+  serializePost(post, format, options = {}) {
     const validFormats = ['mobiledoc', 'html', 'text'];
-    assert(`Unrecognized serialization format ${format}`,
-           contains(validFormats, format));
+    assert(
+      `Unrecognized serialization format ${format}`,
+      contains(validFormats, format)
+    );
 
     if (format === 'mobiledoc') {
       let version = options.version || MOBILEDOC_VERSION;
@@ -593,7 +649,7 @@ class Editor {
   }
 
   removeAllViews() {
-    this._views.forEach((v) => v.destroy());
+    this._views.forEach(v => v.destroy());
     this._views = [];
   }
 
@@ -890,12 +946,18 @@ class Editor {
    * @public
    * @see PostEditor#toggleMarkup
    */
-  toggleMarkup(markup, attributes={}) {
+  toggleMarkup(markup, attributes = {}) {
     markup = this.builder.createMarkup(markup, attributes);
     let { range } = this;
     let willAdd = !this.detectMarkupInRange(range, markup.tagName);
-    let shouldCancel = this._runBeforeHooks('toggleMarkup', {markup, range, willAdd});
-    if (shouldCancel) { return; }
+    let shouldCancel = this._runBeforeHooks('toggleMarkup', {
+      markup,
+      range,
+      willAdd
+    });
+    if (shouldCancel) {
+      return;
+    }
 
     if (range.isCollapsed) {
       this._editState.toggleMarkupState(markup);
@@ -928,7 +990,10 @@ class Editor {
    */
   _hasSelection() {
     let { cursor } = this;
-    return this.hasRendered && (cursor._hasCollapsedSelection() || cursor._hasSelection());
+    return (
+      this.hasRendered &&
+      (cursor._hasCollapsedSelection() || cursor._hasSelection())
+    );
   }
 
   /**
@@ -968,7 +1033,7 @@ class Editor {
    */
   handleKeyCommand(event) {
     const keyCommands = findKeyCommands(this.keyCommands, event);
-    for (let i=0; i<keyCommands.length; i++) {
+    for (let i = 0; i < keyCommands.length; i++) {
       let keyCommand = keyCommands[i];
       if (keyCommand.run(this) !== false) {
         event.preventDefault();
@@ -987,11 +1052,17 @@ class Editor {
    * @public
    */
   insertText(text) {
-    if (!this.hasCursor()) { return; }
+    if (!this.hasCursor()) {
+      return;
+    }
     if (this.post.isBlank) {
       this._insertEmptyMarkupSectionAtCursor();
     }
-    let { activeMarkups, range, range: { head: position } } = this;
+    let {
+      activeMarkups,
+      range,
+      range: { head: position }
+    } = this;
 
     this.run(postEditor => {
       if (!range.isCollapsed) {
@@ -1012,8 +1083,10 @@ class Editor {
    * @return {Atom} The inserted atom.
    * @public
    */
-  insertAtom(atomName, atomText='', atomPayload={}) {
-    if (!this.hasCursor()) { return; }
+  insertAtom(atomName, atomText = '', atomPayload = {}) {
+    if (!this.hasCursor()) {
+      return;
+    }
     if (this.post.isBlank) {
       this._insertEmptyMarkupSectionAtCursor();
     }
@@ -1045,8 +1118,10 @@ class Editor {
    * @return {Card} The inserted Card section.
    * @public
    */
-  insertCard(cardName, cardPayload={}, inEditMode=false) {
-    if (!this.hasCursor()) { return; }
+  insertCard(cardName, cardPayload = {}, inEditMode = false) {
+    if (!this.hasCursor()) {
+      return;
+    }
     if (this.post.isBlank) {
       this._insertEmptyMarkupSectionAtCursor();
     }
@@ -1065,7 +1140,9 @@ class Editor {
       }
 
       let section = position.section;
-      if (section.isNested) { section = section.parent; }
+      if (section.isNested) {
+        section = section.parent;
+      }
 
       if (section.isBlank) {
         postEditor.replaceSection(section, card);

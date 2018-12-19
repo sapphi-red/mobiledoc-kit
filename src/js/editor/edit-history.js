@@ -1,4 +1,4 @@
-import mobiledocParsers from 'mobiledoc-kit/parsers/mobiledoc';
+import mobiledocParsers from '../parsers/mobiledoc';
 import FixedQueue from 'mobiledoc-kit/utils/fixed-queue';
 
 function findLeafSectionAtIndex(post, index) {
@@ -12,7 +12,7 @@ function findLeafSectionAtIndex(post, index) {
 }
 
 export class Snapshot {
-  constructor(takenAt, editor, editAction=null) {
+  constructor(takenAt, editor, editAction = null) {
     this.mobiledoc = editor.serialize();
     this.editor = editor;
     this.editAction = editAction;
@@ -73,7 +73,7 @@ export default class EditHistory {
     }
   }
 
-  storeSnapshot(editAction=null) {
+  storeSnapshot(editAction = null) {
     let now = Date.now();
     // store pending snapshot
     let pendingSnapshot = this._pendingSnapshot;
