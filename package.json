@@ -63,5 +63,5 @@
   },
   "main": "dist/commonjs/mobiledoc-kit/index.js",
   "module": "dist/modules/mobiledoc-kit.esm.js",
-  "browser": "dist/amd/mobiledoc-kit.amd.js"
+  "browser": "dist/amd/mobiledoc-kit.js"
 }
