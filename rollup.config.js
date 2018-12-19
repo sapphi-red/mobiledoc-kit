@@ -2,11 +2,15 @@ import resolve from 'rollup-plugin-node-resolve';
 import commonjs from 'rollup-plugin-commonjs';
 import pkg from './package.json';
 import path from 'path';
+import multiEntry from 'rollup-plugin-multi-entry';
 
 function fixMobiledocImport() {
   return {
     name: 'fix-mobiledoc-import',
     resolveId(importee, importer) {
+      if (importee === 'mobiledoc-kit') {
+        return '/Users/coryforsyth/work/opensource/bustle/mobiledoc-kit/src/js/index.js';
+      }
       if (importee.startsWith('mobiledoc-kit/')) {
         // console.log(importee, '<-', importer);
         importee = importee.replace('mobiledoc-kit/', '');
@@ -55,6 +59,27 @@ export default [
       exports: 'named'
     },
     plugins: [
+      fixMobiledocImport(),
+      resolve(), // so Rollup can find `ms`
+      commonjs() // so Rollup can convert `ms` to an ES module
+    ]
+  },
+
+  // TESTS
+  {
+    input: 'tests/**/*.js',
+    output: {
+      name: 'Mobiledoc',
+      file: 'dist/rollup/tests/index.js',
+      format: 'iife',
+      exports: 'named',
+      globals: {
+        'mobiledoc-kit': 'Mobiledoc',
+        'ember-cli/test-loader': 'TestLoader'
+      }
+    },
+    plugins: [
+      multiEntry(),
       fixMobiledocImport(),
       resolve(), // so Rollup can find `ms`
       commonjs() // so Rollup can convert `ms` to an ES module

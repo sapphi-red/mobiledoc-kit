@@ -13,9 +13,9 @@ import wait from './helpers/wait';
 import MockEditor from './helpers/mock-editor';
 import renderBuiltAbstract from './helpers/render-built-abstract';
 import run from './helpers/post-editor-run';
-import EditorHelpers from './helpers/editor';
+import * as EditorHelpers from './helpers/editor';
 
-const { test:qunitTest, module, skip } = QUnit;
+const { test: qunitTest, module, skip } = QUnit;
 
 QUnit.config.urlConfig.push({
   id: 'debugTest',
@@ -49,9 +49,9 @@ QUnit.testStart(() => {
 
 let sauceLog = [];
 
-QUnit.done(function (test_results) {
+QUnit.done(function(test_results) {
   var tests = [];
-  for(var i = 0, len = sauceLog.length; i < len; i++) {
+  for (var i = 0, len = sauceLog.length; i < len; i++) {
     var details = sauceLog[i];
     tests.push({
       name: details.name,
@@ -66,8 +66,8 @@ QUnit.done(function (test_results) {
   window.global_test_results = test_results;
 });
 
-QUnit.testStart(function(testDetails){
-  QUnit.log(function(details){
+QUnit.testStart(function(testDetails) {
+  QUnit.log(function(details) {
     if (!details.result) {
       details.name = testDetails.name;
       sauceLog.push(details);

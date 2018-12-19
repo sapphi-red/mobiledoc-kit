@@ -1,7 +1,7 @@
 /* global QUnit, $ */
 
 import DOMHelper from './dom';
-import mobiledocRenderers from 'mobiledoc-kit/renderers/mobiledoc';
+import mobiledocRenderers from 'mobiledoc-kit/renderers/mobiledoc/index';
 import {
   MARKUP_SECTION_TYPE,
   LIST_SECTION_TYPE,
@@ -19,19 +19,33 @@ function compareMarkers(actual, expected, assert, path, deepCompare) {
     assert.equal(actual.value, expected.value, `wrong value at ${path}`);
   }
   if (actual.markups.length !== expected.markups.length) {
-    assert.equal(actual.markups.length, expected.markups.length,
-                 `wrong markups at ${path}`);
+    assert.equal(
+      actual.markups.length,
+      expected.markups.length,
+      `wrong markups at ${path}`
+    );
   }
   if (deepCompare) {
     actual.markups.forEach((markup, index) => {
-      comparePostNode(markup, expected.markups[index],
-                      assert, `${path}:${index}`, deepCompare);
+      comparePostNode(
+        markup,
+        expected.markups[index],
+        assert,
+        `${path}:${index}`,
+        deepCompare
+      );
     });
   }
 }
 
 /* eslint-disable complexity */
-function comparePostNode(actual, expected, assert, path='root', deepCompare=false) {
+function comparePostNode(
+  actual,
+  expected,
+  assert,
+  path = 'root',
+  deepCompare = false
+) {
   if (!actual || !expected) {
     assert.ok(!!actual, `missing actual post node at ${path}`);
     assert.ok(!!expected, `missing expected post node at ${path}`);
@@ -49,13 +63,21 @@ function comparePostNode(actual, expected, assert, path='root', deepCompare=fals
   switch (actual.type) {
     case POST_TYPE:
       if (actual.sections.length !== expected.sections.length) {
-        assert.equal(actual.sections.length, expected.sections.length,
-                     `wrong sections for post`);
+        assert.equal(
+          actual.sections.length,
+          expected.sections.length,
+          `wrong sections for post`
+        );
       }
       if (deepCompare) {
         actual.sections.forEach((section, index) => {
-          comparePostNode(section, expected.sections.objectAt(index),
-                          assert, `${path}:${index}`, deepCompare);
+          comparePostNode(
+            section,
+            expected.sections.objectAt(index),
+            assert,
+            `${path}:${index}`,
+            deepCompare
+          );
         });
       }
       break;
@@ -71,16 +93,28 @@ function comparePostNode(actual, expected, assert, path='root', deepCompare=fals
     case MARKUP_SECTION_TYPE:
     case LIST_ITEM_TYPE:
       if (actual.tagName !== expected.tagName) {
-        assert.equal(actual.tagName, expected.tagName, `wrong tagName at ${path}`);
+        assert.equal(
+          actual.tagName,
+          expected.tagName,
+          `wrong tagName at ${path}`
+        );
       }
       if (actual.markers.length !== expected.markers.length) {
-        assert.equal(actual.markers.length, expected.markers.length,
-                     `wrong markers at ${path}`);
+        assert.equal(
+          actual.markers.length,
+          expected.markers.length,
+          `wrong markers at ${path}`
+        );
       }
       if (deepCompare) {
         actual.markers.forEach((marker, index) => {
-          comparePostNode(marker, expected.markers.objectAt(index),
-                          assert, `${path}:${index}`, deepCompare);
+          comparePostNode(
+            marker,
+            expected.markers.objectAt(index),
+            assert,
+            `${path}:${index}`,
+            deepCompare
+          );
         });
       }
       break;
@@ -89,19 +123,30 @@ function comparePostNode(actual, expected, assert, path='root', deepCompare=fals
         assert.equal(actual.name, expected.name, `wrong card name at ${path}`);
       }
       if (!QUnit.equiv(actual.payload, expected.payload)) {
-        assert.deepEqual(actual.payload, expected.payload,
-                         `wrong card payload at ${path}`);
+        assert.deepEqual(
+          actual.payload,
+          expected.payload,
+          `wrong card payload at ${path}`
+        );
       }
       break;
     case LIST_SECTION_TYPE:
       if (actual.items.length !== expected.items.length) {
-        assert.equal(actual.items.length, expected.items.length,
-                     `wrong items at ${path}`);
+        assert.equal(
+          actual.items.length,
+          expected.items.length,
+          `wrong items at ${path}`
+        );
       }
       if (deepCompare) {
         actual.items.forEach((item, index) => {
-          comparePostNode(item, expected.items.objectAt(index),
-                          assert, `${path}:${index}`, deepCompare);
+          comparePostNode(
+            item,
+            expected.items.objectAt(index),
+            assert,
+            `${path}:${index}`,
+            deepCompare
+          );
         });
       }
       break;
@@ -112,12 +157,18 @@ function comparePostNode(actual, expected, assert, path='root', deepCompare=fals
       break;
     case MARKUP_TYPE:
       if (actual.tagName !== expected.tagName) {
-        assert.equal(actual.tagName, expected.tagName,
-                     `wrong tagName at ${path}`);
+        assert.equal(
+          actual.tagName,
+          expected.tagName,
+          `wrong tagName at ${path}`
+        );
       }
       if (!QUnit.equiv(actual.attributes, expected.attributes)) {
-        assert.deepEqual(actual.attributes, expected.attributes,
-                         `wrong attributes at ${path}`);
+        assert.deepEqual(
+          actual.attributes,
+          expected.attributes,
+          `wrong attributes at ${path}`
+        );
       }
       break;
     default:
@@ -127,7 +178,7 @@ function comparePostNode(actual, expected, assert, path='root', deepCompare=fals
 /* eslint-enable complexity */
 
 export default function registerAssertions(QUnit) {
-  QUnit.assert.isBlank = function(val, message=`value is blank`) {
+  QUnit.assert.isBlank = function(val, message = `value is blank`) {
     this.pushResult({
       result: val === null || val === undefined || val === '' || val === false,
       actual: `${val} (typeof ${typeof val})`,
@@ -136,8 +187,10 @@ export default function registerAssertions(QUnit) {
     });
   };
 
-  QUnit.assert.hasElement = function(selector,
-                                     message=`hasElement "${selector}"`) {
+  QUnit.assert.hasElement = function(
+    selector,
+    message = `hasElement "${selector}"`
+  ) {
     let found = $(selector);
     this.pushResult({
       result: found.length > 0,
@@ -148,8 +201,10 @@ export default function registerAssertions(QUnit) {
     return found;
   };
 
-  QUnit.assert.hasNoElement = function(selector,
-                                       message=`hasNoElement "${selector}"`) {
+  QUnit.assert.hasNoElement = function(
+    selector,
+    message = `hasNoElement "${selector}"`
+  ) {
     let found = $(selector);
     this.pushResult({
       result: found.length === 0,
@@ -160,8 +215,11 @@ export default function registerAssertions(QUnit) {
     return found;
   };
 
-  QUnit.assert.hasClass = function(element, className,
-                               message=`element has class "${className}"`) {
+  QUnit.assert.hasClass = function(
+    element,
+    className,
+    message = `element has class "${className}"`
+  ) {
     this.pushResult({
       result: element.classList.contains(className),
       actual: element.classList,
@@ -170,8 +228,11 @@ export default function registerAssertions(QUnit) {
     });
   };
 
-  QUnit.assert.notHasClass = function(element, className,
-                               message=`element has class "${className}"`) {
+  QUnit.assert.notHasClass = function(
+    element,
+    className,
+    message = `element has class "${className}"`
+  ) {
     this.pushResult({
       result: !element.classList.contains(className),
       actual: element.classList,
@@ -180,7 +241,10 @@ export default function registerAssertions(QUnit) {
     });
   };
 
-  QUnit.assert.selectedText = function(text, message=`selectedText "${text}"`) {
+  QUnit.assert.selectedText = function(
+    text,
+    message = `selectedText "${text}"`
+  ) {
     const selected = DOMHelper.getSelectedText();
     this.pushResult({
       result: selected === text,
@@ -190,17 +254,23 @@ export default function registerAssertions(QUnit) {
     });
   };
 
-  QUnit.assert.inArray = function(element, array,
-                                  message=`has "${element}" in "${array}"`) {
+  QUnit.assert.inArray = function(
+    element,
+    array,
+    message = `has "${element}" in "${array}"`
+  ) {
     QUnit.assert.ok(array.indexOf(element) !== -1, message);
   };
 
-  QUnit.assert.postIsSimilar = function(post, expected, postName='post') {
+  QUnit.assert.postIsSimilar = function(post, expected, postName = 'post') {
     comparePostNode(post, expected, this, postName, true);
-    let mobiledoc         = mobiledocRenderers.render(post),
-        expectedMobiledoc = mobiledocRenderers.render(expected);
-    this.deepEqual(mobiledoc, expectedMobiledoc,
-                   `${postName} is similar to expected`);
+    let mobiledoc = mobiledocRenderers.render(post),
+      expectedMobiledoc = mobiledocRenderers.render(expected);
+    this.deepEqual(
+      mobiledoc,
+      expectedMobiledoc,
+      `${postName} is similar to expected`
+    );
   };
 
   QUnit.assert.renderTreeIsEqual = function(renderTree, expectedPost) {
@@ -214,21 +284,27 @@ export default function registerAssertions(QUnit) {
       let path = `post:${index}`;
 
       let compareChildren = (parentPostNode, parentRenderNode, path) => {
-        let children = parentPostNode.markers ||
-                       parentPostNode.items ||
-                       [];
+        let children = parentPostNode.markers || parentPostNode.items || [];
 
         if (children.length !== parentRenderNode.childNodes.length) {
-          this.equal(parentRenderNode.childNodes.length, children.length,
-                     `wrong child render nodes at ${path}`);
+          this.equal(
+            parentRenderNode.childNodes.length,
+            children.length,
+            `wrong child render nodes at ${path}`
+          );
           return;
         }
 
         children.forEach((child, index) => {
           let renderNode = parentRenderNode.childNodes.objectAt(index);
 
-          comparePostNode(child, renderNode && renderNode.postNode,
-                          this, `${path}:${index}`, false);
+          comparePostNode(
+            child,
+            renderNode && renderNode.postNode,
+            this,
+            `${path}:${index}`,
+            false
+          );
           compareChildren(child, renderNode, `${path}:${index}`);
         });
       };
@@ -240,8 +316,11 @@ export default function registerAssertions(QUnit) {
     this.ok(true, 'renderNode is similar');
   };
 
-  QUnit.assert.positionIsEqual = function(position, expected,
-                                          message=`position is equal`) {
+  QUnit.assert.positionIsEqual = function(
+    position,
+    expected,
+    message = `position is equal`
+  ) {
     if (position.section !== expected.section) {
       this.pushResult({
         result: false,
@@ -266,8 +345,11 @@ export default function registerAssertions(QUnit) {
     }
   };
 
-  QUnit.assert.rangeIsEqual = function(range, expected,
-                                          message=`range is equal`) {
+  QUnit.assert.rangeIsEqual = function(
+    range,
+    expected,
+    message = `range is equal`
+  ) {
     let { head, tail, isCollapsed, direction } = range;
     let {
       head: expectedHead,
@@ -283,7 +365,9 @@ export default function registerAssertions(QUnit) {
       this.pushResult({
         result: false,
         actual: `${head.section.type}:${head.section.tagName}`,
-        expected: `${expectedHead.section.type}:${expectedHead.section.tagName}`,
+        expected: `${expectedHead.section.type}:${
+          expectedHead.section.tagName
+        }`,
         message: 'incorrect head position'
       });
     }
@@ -293,7 +377,9 @@ export default function registerAssertions(QUnit) {
       this.pushResult({
         result: false,
         actual: `${tail.section.type}:${tail.section.tagName}`,
-        expected: `${expectedTail.section.type}:${expectedTail.section.tagName}`,
+        expected: `${expectedTail.section.type}:${
+          expectedTail.section.tagName
+        }`,
         message: 'incorrect tail position'
       });
     }
