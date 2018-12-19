@@ -36,12 +36,13 @@ export default [
     input: 'src/js/index.js',
     output: {
       name: 'Mobiledoc',
-      file: 'dist/amd/mobiledoc-kit.amd.js',
+      file: 'dist/amd/mobiledoc-kit.js',
       format: 'amd',
       amd: {
         id: 'mobiledoc-kit'
       },
-      exports: 'named'
+      exports: 'named',
+      sourcemap: true
     },
     plugins: [
       fixMobiledocImport(),
