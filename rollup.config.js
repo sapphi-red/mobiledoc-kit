@@ -50,7 +50,7 @@ export default [
     input: 'src/js/index.js',
     output: {
       name: 'Mobiledoc',
-      file: 'dist/global/mobiledoc-kit.global.js',
+      file: 'dist/global/mobiledoc-kit.js',
       format: 'iife',
       exports: 'named'
     },
