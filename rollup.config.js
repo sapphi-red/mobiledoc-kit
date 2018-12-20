@@ -5,6 +5,7 @@ import path from 'path';
 import multiEntry from 'rollup-plugin-multi-entry';
 import replace from 'rollup-plugin-replace';
 import postcss from 'rollup-plugin-postcss';
+import copy from 'rollup-plugin-copy';
 
 const replaceVersion = replace({
   include: 'src/js/version.js',
@@ -83,7 +84,13 @@ export default [
       file: 'dist/css/mobiledoc-kit.css'
     },
     plugins: [
-      postcss({ extract: true })
+      postcss({ extract: true }),
+
+      // Put sourcemap in the correct place (Where Ember CLI expects and where
+      // the previous Broccoli build put it).
+      // Needs to run after the AMD build above is complete.
+      // Should be able to define output.sourcemapFile instead but that is broken.
+      copy({ 'dist/amd/mobiledoc-kit.js.map': 'dist/amd/mobiledoc-kit.map', verbose: true })
     ]
   },
   
