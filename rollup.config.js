@@ -4,6 +4,7 @@ import pkg from './package.json';
 import path from 'path';
 import multiEntry from 'rollup-plugin-multi-entry';
 import replace from 'rollup-plugin-replace';
+import postcss from 'rollup-plugin-postcss';
 
 const replaceVersion = replace({
   include: 'src/js/version.js',
@@ -74,6 +75,18 @@ export default [
     ]
   },
 
+  // CSS
+  {
+    input: 'src/css/mobiledoc-kit.css',
+    output: {
+      format: 'amd',
+      file: 'dist/css/mobiledoc-kit.css'
+    },
+    plugins: [
+      postcss({ extract: true })
+    ]
+  },
+  
   // TESTS
   {
     input: 'tests/**/*.js',
