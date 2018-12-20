@@ -13,20 +13,19 @@ const replaceVersion = replace({
   }
 });
 
+const CWD = process.cwd();
+
 function fixMobiledocImport() {
   return {
     name: 'fix-mobiledoc-import',
     resolveId(importee, importer) {
       if (importee === 'mobiledoc-kit') {
-        return '/Users/coryforsyth/work/opensource/bustle/mobiledoc-kit/src/js/index.js';
+        return `${CWD}/src/js/index.js`;
       }
       if (importee.startsWith('mobiledoc-kit/')) {
         // console.log(importee, '<-', importer);
         importee = importee.replace('mobiledoc-kit/', '');
-        importee =
-          '/Users/coryforsyth/work/opensource/bustle/mobiledoc-kit/src/js/' +
-          importee +
-          '.js';
+        importee = `${CWD}/src/js/${importee}.js`;
         // console.log('abs:', importee);
         let rel = path.relative(importer, importee);
         rel = path.resolve(importer, rel);
