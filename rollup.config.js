@@ -45,7 +45,7 @@ export default [
     input: 'src/js/index.js',
     output: {
       name: 'Mobiledoc',
-      file: 'dist/amd/mobiledoc-kit.js',
+      file: pkg.browser,
       format: 'amd',
       amd: {
         id: 'mobiledoc-kit'
@@ -56,7 +56,7 @@ export default [
     plugins: [
       replaceVersion,
       fixMobiledocImport(),
-      resolve() // so Rollup can find `ms`
+      resolve() // so Rollup can find packages in node-modules
     ]
   },
 
@@ -64,7 +64,7 @@ export default [
     input: 'src/js/index.js',
     output: {
       name: 'Mobiledoc',
-      file: 'dist/global/mobiledoc-kit.js',
+      file: pkg.browserGlobal,
       format: 'iife',
       exports: 'named'
     },
@@ -94,20 +94,27 @@ export default [
       fixMobiledocImport(),
       resolve() // so Rollup can find `ms`
     ]
-  }
+  },
 
-  // CommonJS (for Node) and ES module (for bundlers) build.
-  // (We could have three entries in the configuration array
-  // instead of two, but it's quicker to generate multiple
-  // builds from a single configuration where possible, using
-  // an array for the `output` option, where we can specify
-  // `file` and `format` for each target)
-  // {
-  //   input: 'src/js/index.js',
-  //   external: ['mobiledoc-dom-renderer', 'mobiledoc-text-renderer'],
-  //   output: [
-  //     { file: pkg.main, format: 'cjs' },
-  //     { file: pkg.module, format: 'es' }
-  //   ]
-  // }
+  {
+    input: 'src/js/index.js',
+    // external: ['mobiledoc-dom-renderer', 'mobiledoc-text-renderer'],
+    output: [
+      {
+        exports: 'named',
+        file: pkg.main,
+        format: 'cjs'
+      },
+      {
+        exports: 'named',
+        file: pkg.module,
+        format: 'es'
+      }
+    ],
+    plugins: [
+      replaceVersion,
+      fixMobiledocImport(),
+      resolve() // so Rollup can find packages in node-modules
+    ]
+  }
 ];
