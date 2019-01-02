@@ -56,8 +56,10 @@
     "jquery": "^3.2.1",
     "jsdoc": "^3.5.4",
     "rollup-plugin-commonjs": "^9.2.0",
+    "rollup-plugin-copy": "^0.2.3",
     "rollup-plugin-multi-entry": "^2.1.0",
     "rollup-plugin-node-resolve": "^4.0.0",
+    "rollup-plugin-postcss": "^1.6.3",
     "rollup-plugin-replace": "^2.1.0",
     "saucie": "^3.3.0",
     "testem": "^2.0.0"

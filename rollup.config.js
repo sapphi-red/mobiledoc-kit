@@ -1,9 +1,10 @@
 import resolve from 'rollup-plugin-node-resolve';
-import commonjs from 'rollup-plugin-commonjs';
 import pkg from './package.json';
 import path from 'path';
 import multiEntry from 'rollup-plugin-multi-entry';
 import replace from 'rollup-plugin-replace';
+import postcss from 'rollup-plugin-postcss';
+import copy from 'rollup-plugin-copy';
 
 const replaceVersion = replace({
   include: 'src/js/version.js',
@@ -13,20 +14,19 @@ const replaceVersion = replace({
   }
 });
 
+const CWD = process.cwd();
+
 function fixMobiledocImport() {
   return {
     name: 'fix-mobiledoc-import',
     resolveId(importee, importer) {
       if (importee === 'mobiledoc-kit') {
-        return '/Users/coryforsyth/work/opensource/bustle/mobiledoc-kit/src/js/index.js';
+        return `${CWD}/src/js/index.js`;
       }
       if (importee.startsWith('mobiledoc-kit/')) {
         // console.log(importee, '<-', importer);
         importee = importee.replace('mobiledoc-kit/', '');
-        importee =
-          '/Users/coryforsyth/work/opensource/bustle/mobiledoc-kit/src/js/' +
-          importee +
-          '.js';
+        importee = `${CWD}/src/js/${importee}.js`;
         // console.log('abs:', importee);
         let rel = path.relative(importer, importee);
         rel = path.resolve(importer, rel);
@@ -75,6 +75,24 @@ export default [
     ]
   },
 
+  // CSS
+  {
+    input: 'src/css/mobiledoc-kit.css',
+    output: {
+      format: 'amd',
+      file: 'dist/css/mobiledoc-kit.css'
+    },
+    plugins: [
+      postcss({ extract: true }),
+
+      // Put sourcemap in the correct place (Where Ember CLI expects and where
+      // the previous Broccoli build put it).
+      // Needs to run after the AMD build above is complete.
+      // Should be able to define output.sourcemapFile instead but that is broken.
+      copy({ 'dist/amd/mobiledoc-kit.js.map': 'dist/amd/mobiledoc-kit.map', verbose: true })
+    ]
+  },
+  
   // TESTS
   {
     input: 'tests/**/*.js',
