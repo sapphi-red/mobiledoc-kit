@@ -41,10 +41,10 @@ function replaceVersion(tree) {
 }
 
 module.exports = mergeTrees([
-  replaceVersion(builder.build("amd", buildOptions)),
-  replaceVersion(builder.build("global", buildOptions)),
-  replaceVersion(builder.build("commonjs", buildOptions)),
-  cssFiles,
+  // replaceVersion(builder.build("amd", buildOptions)),
+  // replaceVersion(builder.build("global", buildOptions)),
+  // replaceVersion(builder.build("commonjs", buildOptions)),
+  // cssFiles,
   testTree,
   demoTree()
 ]);

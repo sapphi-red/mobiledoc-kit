@@ -89,7 +89,7 @@ export default [
       // the previous Broccoli build put it).
       // Needs to run after the AMD build above is complete.
       // Should be able to define output.sourcemapFile instead but that is broken.
-      copy({ 'dist/amd/mobiledoc-kit.js.map': 'dist/amd/mobiledoc-kit.map', verbose: true })
+      // copy({ 'dist/amd/mobiledoc-kit.js.map': 'dist/amd/mobiledoc-kit.map', verbose: true })
     ]
   },
   
