@@ -5,6 +5,7 @@ import multiEntry from 'rollup-plugin-multi-entry';
 import replace from 'rollup-plugin-replace';
 import postcss from 'rollup-plugin-postcss';
 import copy from 'rollup-plugin-copy';
+import babel from 'rollup-plugin-babel';
 
 const replaceVersion = replace({
   include: 'src/js/version.js',
@@ -110,7 +111,10 @@ export default [
       multiEntry(),
       replaceVersion,
       fixMobiledocImport(),
-      resolve() // so Rollup can find `ms`
+      resolve(), // so Rollup can find `ms`
+      babel({
+        exclude: 'node_modules/**'
+      })
     ]
   },
 
