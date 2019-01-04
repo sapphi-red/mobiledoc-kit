@@ -113,7 +113,11 @@ export default [
       fixMobiledocImport(),
       resolve(), // so Rollup can find `ms`
       babel({
-        exclude: 'node_modules/**'
+        exclude: 'node_modules/**',
+        babelrc: false,
+        presets: [
+          ['@babel/preset-env', { targets: { "ie": "11" }}]
+        ]
       })
     ]
   },
