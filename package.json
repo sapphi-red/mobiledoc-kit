@@ -11,6 +11,7 @@
     "build:docs": "./node_modules/.bin/jsdoc -c ./.jsdoc",
     "build:website": "npm run build && npm run build:docs && ./bin/build-website.sh",
     "deploy:website": "./bin/deploy-website.sh",
+    "lint": "eslint src tests",
     "update-changelog": "./node_modules/.bin/conventional-changelog -i CHANGELOG.md -r 0 -s",
     "version": "npm run update-changelog && git add CHANGELOG.md",
     "prepublishOnly": "npm run build"
@@ -55,6 +56,7 @@
     "broccoli-test-builder": "^0.4.0",
     "conventional-changelog": "^1.1.3",
     "conventional-changelog-cli": "^1.3.2",
+    "eslint": "^5.12.0",
     "jquery": "^3.2.1",
     "jsdoc": "^3.5.4",
     "rollup": "^1.0.1",

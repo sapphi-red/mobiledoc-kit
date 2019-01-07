@@ -20,4 +20,4 @@ cache:
   yarn: true
 
 script:
-  - yarn test:ci
+  - yarn lint && yarn test:ci
