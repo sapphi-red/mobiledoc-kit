@@ -34,6 +34,9 @@ export function transformHTMLText(textContent) {
   let text = textContent;
   text = text.replace(NO_BREAK_SPACE_REGEX, ' ');
   text = text.replace(TAB_CHARACTER_REGEX, TAB);
+  if (text.endsWith(ZWNJ)) {
+    text = text.slice(0, -1);
+  }
   return text;
 }
 
@@ -289,9 +292,8 @@ class DOMParser {
           }
         }
       } else if (isTextNode(node)) {
-        let text = transformHTMLText(node.textContent);
         let markups = this.collectMarkups(node, element);
-        marker = this.builder.createMarker(text, markups);
+        marker = this.builder.createMarker(ZWNJ, markups);
 
         renderNode = renderTree.buildRenderNode(marker);
         renderNode.element = node;
