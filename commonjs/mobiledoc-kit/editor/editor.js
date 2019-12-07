@@ -18,11 +18,13 @@ var _parsersHtml = require('../parsers/html');
 
 var _parsersDom = require('../parsers/dom');
 
-var _renderersEditorDom = require('../renderers/editor-dom');
+var _renderersEditorDom = require('..\\renderers\\editor-dom');
 
-var _modelsRenderTree = require('../models/render-tree');
+var _modelsRenderTree = require('..\\models\\render-tree');
 
 var _renderersMobiledoc = require('../renderers/mobiledoc');
+
+var _renderersMobiledoc2 = require('..\\renderers\\mobiledoc');
 
 var _utilsMerge = require('../utils/merge');
 
@@ -50,25 +52,25 @@ var _modelsCard = require('../models/card');
 
 var _utilsAssert = require('../utils/assert');
 
-var _editorMutationHandler = require('../editor/mutation-handler');
+var _editorMutationHandler = require('..\\editor\\mutation-handler');
 
-var _editorEditHistory = require('../editor/edit-history');
+var _editorEditHistory = require('..\\editor\\edit-history');
 
-var _editorEventManager = require('../editor/event-manager');
+var _editorEventManager = require('..\\editor\\event-manager');
 
-var _editorEditState = require('../editor/edit-state');
+var _editorEditState = require('..\\editor\\edit-state');
 
 var _mobiledocDomRenderer = require('mobiledoc-dom-renderer');
 
 var _mobiledocTextRenderer = require('mobiledoc-text-renderer');
 
-var _modelsLifecycleCallbacks = require('../models/lifecycle-callbacks');
+var _modelsLifecycleCallbacks = require('..\\models\\lifecycle-callbacks');
 
-var _utilsLogManager = require('../utils/log-manager');
+var _utilsLogManager = require('..\\utils\\log-manager');
 
-var _utilsToRange = require('../utils/to-range');
+var _utilsToRange = require('..\\utils\\to-range');
 
-var _utilsMobiledocError = require('../utils/mobiledoc-error');
+var _utilsMobiledocError = require('..\\utils\\mobiledoc-error');
 
 // This export may later be deprecated, but re-export it from the renderer here
 // for consumers that may depend on it.
@@ -83,6 +85,7 @@ var defaults = {
   placeholder: 'Write here...',
   spellcheck: true,
   autofocus: true,
+  showLinkTooltips: true,
   undoDepth: 5,
   undoBlockTimeout: 5000, // ms for an undo event
   cards: [],
@@ -136,6 +139,8 @@ var CALLBACK_QUEUES = {
  *     a custom toolbar.
  *   * {@link Editor#onTextInput} -- Register callbacks when the user enters text
  *     that matches a given string or regex.
+ *   * {@link Editor#beforeToggleMarkup} -- Register callbacks that will be run before
+ *     applying changes from {@link Editor#toggleMarkup}
  */
 
 var Editor = (function () {
@@ -156,6 +161,7 @@ var Editor = (function () {
    * @param {String} [options.placeholder] Default text to show before user starts typing.
    * @param {Boolean} [options.spellcheck=true] Whether to enable spellcheck
    * @param {Boolean} [options.autofocus=true] Whether to focus the editor when it is first rendered.
+   * @param {Boolean} [options.showLinkTooltips=true] Whether to show the url tooltip for links
    * @param {number} [options.undoDepth=5] How many undo levels will be available.
    *        Set to 0 to disable undo/redo functionality.
    * @return {Editor}
@@ -171,7 +177,7 @@ var Editor = (function () {
 
     (0, _utilsAssert['default'])('editor create accepts an options object. For legacy usage passing an element for the first argument, consider the `html` option for loading DOM or HTML posts. For other cases call `editor.render(domNode)` after editor creation', options && !options.nodeType);
     this._views = [];
-    this.isEditable = null;
+    this.isEditable = true;
     this._parserPlugins = options.parserPlugins || [];
 
     // FIXME: This should merge onto this.options
@@ -200,6 +206,7 @@ var Editor = (function () {
     this._mutationHandler = new _editorMutationHandler['default'](this);
     this._editState = new _editorEditState['default'](this);
     this._callbacks = new _modelsLifecycleCallbacks['default']((0, _utilsArrayUtils.values)(CALLBACK_QUEUES));
+    this._beforeHooks = { toggleMarkup: [] };
 
     _textInputHandlers.DEFAULT_TEXT_INPUT_HANDLERS.forEach(function (handler) {
       return _this.onTextInput(handler);
@@ -306,11 +313,9 @@ var Editor = (function () {
 
       this.element = element;
 
-      if (this.isEditable === null) {
-        this.enableEditing();
+      if (this.showLinkTooltips) {
+        this._addTooltip();
       }
-
-      this._addTooltip();
 
       // A call to `run` will trigger the didUpdatePostCallbacks hooks with a
       // postEditor.
@@ -324,6 +329,12 @@ var Editor = (function () {
 
       this._mutationHandler.init();
       this._eventManager.init();
+
+      if (this.isEditable === false) {
+        this.disableEditing();
+      } else {
+        this.enableEditing();
+      }
 
       if (this.autofocus) {
         this.selectRange(this.post.headPosition());
@@ -602,7 +613,7 @@ var Editor = (function () {
   }, {
     key: 'serialize',
     value: function serialize() {
-      var version = arguments.length <= 0 || arguments[0] === undefined ? _renderersMobiledoc.MOBILEDOC_VERSION : arguments[0];
+      var version = arguments.length <= 0 || arguments[0] === undefined ? _renderersMobiledoc2.MOBILEDOC_VERSION : arguments[0];
 
       return this.serializePost(this.post, 'mobiledoc', { version: version });
     }
@@ -641,7 +652,7 @@ var Editor = (function () {
       (0, _utilsAssert['default'])('Unrecognized serialization format ' + format, (0, _utilsArrayUtils.contains)(validFormats, format));
 
       if (format === 'mobiledoc') {
-        var version = options.version || _renderersMobiledoc.MOBILEDOC_VERSION;
+        var version = options.version || _renderersMobiledoc2.MOBILEDOC_VERSION;
         return _renderersMobiledoc['default'].render(post, version);
       } else {
         var rendered = undefined;
@@ -652,15 +663,17 @@ var Editor = (function () {
 
         switch (format) {
           case 'html':
-            var result = undefined;
-            if (_utilsEnvironment['default'].hasDOM()) {
-              rendered = new _mobiledocDomRenderer['default'](rendererOptions).render(mobiledoc);
-              result = '<div>' + (0, _utilsDomUtils.serializeHTML)(rendered.result) + '</div>';
-            } else {
-              // Fallback to text serialization
-              result = this.serializePost(post, 'text', options);
+            {
+              var result = undefined;
+              if (_utilsEnvironment['default'].hasDOM()) {
+                rendered = new _mobiledocDomRenderer['default'](rendererOptions).render(mobiledoc);
+                result = '<div>' + (0, _utilsDomUtils.serializeHTML)(rendered.result) + '</div>';
+              } else {
+                // Fallback to text serialization
+                result = this.serializePost(post, 'text', options);
+              }
+              return result;
             }
-            return result;
           case 'text':
             rendered = new _mobiledocTextRenderer['default'](rendererOptions).render(mobiledoc);
             return rendered.result;
@@ -725,12 +738,9 @@ var Editor = (function () {
   }, {
     key: 'disableEditing',
     value: function disableEditing() {
-      if (this.isEditable === false) {
-        return;
-      }
-
       this.isEditable = false;
       if (this.hasRendered) {
+        this._eventManager.stop();
         this.element.setAttribute('contentEditable', false);
         this.setPlaceholder('');
         this.selectRange(_utilsCursorRange['default'].blankRange());
@@ -748,7 +758,8 @@ var Editor = (function () {
     key: 'enableEditing',
     value: function enableEditing() {
       this.isEditable = true;
-      if (this.element) {
+      if (this.hasRendered) {
+        this._eventManager.start();
         this.element.setAttribute('contentEditable', true);
         this.setPlaceholder(this.placeholder);
       }
@@ -987,20 +998,53 @@ var Editor = (function () {
     }
 
     /**
+     * @callback editorBeforeCallback
+     * @param { Object } details
+     * @param { Markup } details.markup
+     * @param { Range } details.range
+     * @param { boolean } details.willAdd Whether the markup will be applied
+     */
+
+    /**
+     * Register a callback that will be run before {@link Editor#toggleMarkup} is applied.
+     * If any callback returns literal `false`, the toggling of markup will be canceled.
+     * Note this only applies to calling `editor#toggleMarkup`. Using `editor.run` and
+     * modifying markup with the `postEditor` will skip any `beforeToggleMarkup` callbacks.
+     * @param {editorBeforeCallback}
+     */
+  }, {
+    key: 'beforeToggleMarkup',
+    value: function beforeToggleMarkup(callback) {
+      this._beforeHooks.toggleMarkup.push(callback);
+    }
+
+    /**
      * Toggles the given markup at the editor's current {@link Range}.
      * If the range is collapsed this changes the editor's state so that the
      * next characters typed will be affected. If there is text selected
      * (aka a non-collapsed range), the selections' markup will be toggled.
      * If the editor is not focused and has no active range, nothing happens.
+     * Hooks added using #beforeToggleMarkup will be run before toggling,
+     * and if any of them returns literal false, toggling the markup will be canceled
+     * and no change will be applied.
      * @param {String} markup E.g. "b", "em", "a"
+     * @param {Object} [attributes={}] E.g. {href: "http://bustle.com"}
      * @public
      * @see PostEditor#toggleMarkup
      */
   }, {
     key: 'toggleMarkup',
     value: function toggleMarkup(markup) {
-      markup = this.builder.createMarkup(markup);
+      var attributes = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+
+      markup = this.builder.createMarkup(markup, attributes);
       var range = this.range;
+
+      var willAdd = !this.detectMarkupInRange(range, markup.tagName);
+      var shouldCancel = this._runBeforeHooks('toggleMarkup', { markup: markup, range: range, willAdd: willAdd });
+      if (shouldCancel) {
+        return;
+      }
 
       if (range.isCollapsed) {
         this._editState.toggleMarkupState(markup);
@@ -1071,6 +1115,24 @@ var Editor = (function () {
 
       this.run(function (postEditor) {
         return postEditor.toggleSection(tagName, _this6.range);
+      });
+    }
+
+    /**
+     * Sets an attribute for the current active section(s).
+     *
+     * @param {String} key The attribute. The only valid attribute is 'text-align'.
+     * @param {String} value The value of the attribute.
+     * @public
+     * @see PostEditor#setAttribute
+     */
+  }, {
+    key: 'setAttribute',
+    value: function setAttribute(key, value) {
+      var _this7 = this;
+
+      this.run(function (postEditor) {
+        return postEditor.setAttribute(key, value, _this7.range);
       });
     }
 
@@ -1185,7 +1247,7 @@ var Editor = (function () {
   }, {
     key: 'insertCard',
     value: function insertCard(cardName) {
-      var _this7 = this;
+      var _this8 = this;
 
       var cardPayload = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
       var inEditMode = arguments.length <= 2 || arguments[2] === undefined ? false : arguments[2];
@@ -1204,7 +1266,7 @@ var Editor = (function () {
         var position = range.tail;
         card = postEditor.builder.createCardSection(cardName, cardPayload);
         if (inEditMode) {
-          _this7.editCard(card);
+          _this8.editCard(card);
         }
 
         if (!range.isCollapsed) {
@@ -1219,7 +1281,7 @@ var Editor = (function () {
         if (section.isBlank) {
           postEditor.replaceSection(section, card);
         } else {
-          var collection = _this7.post.sections;
+          var collection = _this8.post.sections;
           postEditor.insertSectionBefore(collection, card, section.next);
         }
 
@@ -1291,6 +1353,28 @@ var Editor = (function () {
       }
       (_callbacks3 = this._callbacks).runCallbacks.apply(_callbacks3, arguments);
     }
+
+    /**
+     * Runs each callback for the given hookName.
+     * Only the hookName 'toggleMarkup' is currently supported
+     * @return {Boolean} shouldCancel Whether the action in `hookName` should be canceled
+     * @private
+     */
+  }, {
+    key: '_runBeforeHooks',
+    value: function _runBeforeHooks(hookName) {
+      var hooks = this._beforeHooks[hookName] || [];
+
+      for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+        args[_key - 1] = arguments[_key];
+      }
+
+      for (var i = 0; i < hooks.length; i++) {
+        if (hooks[i].apply(hooks, args) === false) {
+          return true;
+        }
+      }
+    }
   }, {
     key: 'builder',
     get: function get() {
@@ -1344,6 +1428,11 @@ var Editor = (function () {
       var activeSections = this.activeSections;
 
       return activeSections[activeSections.length - 1];
+    }
+  }, {
+    key: 'activeSectionAttributes',
+    get: function get() {
+      return this._editState.activeSectionAttributes;
     }
   }, {
     key: 'activeMarkups',

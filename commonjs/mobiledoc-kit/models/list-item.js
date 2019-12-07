@@ -12,9 +12,9 @@ var _markerable = require('./_markerable');
 
 var _types = require('./types');
 
-var _utilsDomUtils = require('../utils/dom-utils');
+var _utilsDomUtils = require('..\\utils\\dom-utils');
 
-var _utilsArrayUtils = require('../utils/array-utils');
+var _utilsArrayUtils = require('..\\utils\\array-utils');
 
 var VALID_LIST_ITEM_TAGNAMES = ['li'].map(_utilsDomUtils.normalizeTagName);
 

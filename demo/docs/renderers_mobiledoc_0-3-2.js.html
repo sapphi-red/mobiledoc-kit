@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Source: renderers/mobiledoc/0-3-1.js</title>
+    <title>JSDoc: Source: renderers/mobiledoc/0-3-2.js</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,7 +17,7 @@
 
 <div id="main">
 
-    <h1 class="page-title">Source: renderers/mobiledoc/0-3-1.js</h1>
+    <h1 class="page-title">Source: renderers/mobiledoc/0-3-2.js</h1>
 
     
 
@@ -40,7 +40,7 @@ import {
   ATOM_TYPE
 } from '../../models/types';
 
-export const MOBILEDOC_VERSION = '0.3.1';
+export const MOBILEDOC_VERSION = '0.3.2';
 export const MOBILEDOC_MARKUP_SECTION_TYPE = 1;
 export const MOBILEDOC_IMAGE_SECTION_TYPE = 2;
 export const MOBILEDOC_LIST_SECTION_TYPE = 3;
@@ -55,11 +55,11 @@ const visitor = {
     visitArray(visitor, node.sections, opcodes);
   },
   [MARKUP_SECTION_TYPE](node, opcodes) {
-    opcodes.push(['openMarkupSection', node.tagName]);
+    opcodes.push(['openMarkupSection', node.tagName, objectToSortedKVArray(node.attributes)]);
     visitArray(visitor, node.markers, opcodes);
   },
   [LIST_SECTION_TYPE](node, opcodes) {
-    opcodes.push(['openListSection', node.tagName]);
+    opcodes.push(['openListSection', node.tagName, objectToSortedKVArray(node.attributes)]);
     visitArray(visitor, node.items, opcodes);
   },
   [LIST_ITEM_TYPE](node, opcodes) {
@@ -95,13 +95,13 @@ const postOpcodeCompiler = {
       value || ''
     ]);
   },
-  openMarkupSection(tagName) {
+  openMarkupSection(tagName, attributes) {
     this.markers = [];
-    this.sections.push([MOBILEDOC_MARKUP_SECTION_TYPE, tagName, this.markers]);
+    this.sections.push([MOBILEDOC_MARKUP_SECTION_TYPE, tagName, this.markers, attributes]);
   },
-  openListSection(tagName) {
+  openListSection(tagName, attributes) {
     this.items = [];
-    this.sections.push([MOBILEDOC_LIST_SECTION_TYPE, tagName, this.items]);
+    this.sections.push([MOBILEDOC_LIST_SECTION_TYPE, tagName, this.items, attributes]);
   },
   openListItem() {
     this.markers = [];

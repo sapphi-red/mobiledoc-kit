@@ -6,15 +6,15 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 var _types = require('./types');
 
-var _utilsLinkedList = require('../utils/linked-list');
+var _utilsLinkedList = require('..\\utils\\linked-list');
 
-var _utilsArrayUtils = require('../utils/array-utils');
+var _utilsArrayUtils = require('..\\utils\\array-utils');
 
-var _utilsSet = require('../utils/set');
+var _utilsSet = require('..\\utils\\set');
 
-var _utilsCursorPosition = require('../utils/cursor/position');
+var _utilsCursorPosition = require('..\\utils\\cursor\\position');
 
-var _utilsAssert = require('../utils/assert');
+var _utilsAssert = require('..\\utils\\assert');
 
 /**
  * The Post is an in-memory representation of an editor's document.
@@ -199,7 +199,7 @@ var Post = (function () {
       if (next) {
         if (next.isLeafSection) {
           return next;
-        } else if (!!next.items) {
+        } else if (next.items) {
           return next.items.head;
         } else {
           (0, _utilsAssert['default'])('Cannot determine next section from non-leaf-section', false);
@@ -249,6 +249,7 @@ var Post = (function () {
           });
         } else {
           newSection = section.clone();
+          sectionParent = post;
         }
         if (sectionParent) {
           sectionParent.sections.append(newSection);

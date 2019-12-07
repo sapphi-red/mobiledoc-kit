@@ -4,13 +4,13 @@ var _createClass = (function () { function defineProperties(target, props) { for
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-var _utilsSet = require('../utils/set');
+var _utilsSet = require('..\\utils\\set');
 
-var _utilsArrayUtils = require('../utils/array-utils');
+var _utilsArrayUtils = require('..\\utils\\array-utils');
 
-var _utilsAssert = require('../utils/assert');
+var _utilsAssert = require('..\\utils\\assert');
 
-var _utilsDomUtils = require('../utils/dom-utils');
+var _utilsDomUtils = require('..\\utils\\dom-utils');
 
 var MUTATION = {
   NODES_CHANGED: 'childList',

@@ -4,7 +4,7 @@ var _createClass = (function () { function defineProperties(target, props) { for
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-var _modelsRenderNode = require('../models/render-node');
+var _modelsRenderNode = require('..\\models\\render-node');
 
 var _utilsElementMap = require('../utils/element-map');
 

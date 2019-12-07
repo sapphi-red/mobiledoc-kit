@@ -3,6 +3,7 @@
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
 exports.transformHTMLText = transformHTMLText;
+exports.trimSectionText = trimSectionText;
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
@@ -14,11 +15,13 @@ var _utilsDomUtils = require('../utils/dom-utils');
 
 var _utilsArrayUtils = require('../utils/array-utils');
 
-var _utilsCharacters = require('../utils/characters');
+var _utilsCharacters = require('..\\utils\\characters');
 
-var _parsersSection = require('../parsers/section');
+var _renderersEditorDom2 = require('..\\renderers\\editor-dom');
 
-var _modelsMarkup = require('../models/markup');
+var _parsersSection = require('..\\parsers\\section');
+
+var _modelsMarkup = require('..\\models\\markup');
 
 var GOOGLE_DOCS_CONTAINER_ID_REGEX = /^docs\-internal\-guid/;
 
@@ -29,7 +32,21 @@ function transformHTMLText(textContent) {
   var text = textContent;
   text = text.replace(NO_BREAK_SPACE_REGEX, ' ');
   text = text.replace(TAB_CHARACTER_REGEX, _utilsCharacters.TAB);
+  if (text.endsWith(_renderersEditorDom2.ZWNJ)) {
+    text = text.slice(0, -1);
+  }
   return text;
+}
+
+function trimSectionText(section) {
+  if (section.isMarkerable && section.markers.length) {
+    var _section$markers = section.markers;
+    var head = _section$markers.head;
+    var tail = _section$markers.tail;
+
+    head.value = head.value.replace(/^\s+/, '');
+    tail.value = tail.value.replace(/\s+$/, '');
+  }
 }
 
 function isGoogleDocsContainer(element) {
@@ -104,6 +121,12 @@ var DOMParser = (function () {
         _this.appendSections(post, sections);
       });
 
+      // trim leading/trailing whitespace of markerable sections to avoid
+      // unnessary whitespace from indented HTML input
+      (0, _utilsArrayUtils.forEach)(post.sections, function (section) {
+        return trimSectionText(section);
+      });
+
       return post;
     }
   }, {
@@ -118,7 +141,9 @@ var DOMParser = (function () {
   }, {
     key: 'appendSection',
     value: function appendSection(post, section) {
-      if (section.isBlank || section.isMarkerable && trim(section.text) === '') {
+      if (section.isBlank || section.isMarkerable && trim(section.text) === "" && !(0, _utilsArrayUtils.any)(section.markers, function (marker) {
+        return marker.isAtom;
+      })) {
         return;
       }
 
@@ -235,9 +260,9 @@ var DOMParser = (function () {
             var headTextNode = _renderNode.headTextNode;
             var tailTextNode = _renderNode.tailTextNode;
 
-            if (headTextNode.textContent !== _renderersEditorDom.ZWNJ) {
-              var value = headTextNode.textContent.replace(new RegExp(_renderersEditorDom.ZWNJ, 'g'), '');
-              headTextNode.textContent = _renderersEditorDom.ZWNJ;
+            if (headTextNode.textContent !== _renderersEditorDom2.ZWNJ) {
+              var value = headTextNode.textContent.replace(new RegExp(_renderersEditorDom2.ZWNJ, 'g'), '');
+              headTextNode.textContent = _renderersEditorDom2.ZWNJ;
               if (previousMarker && previousMarker.isMarker) {
                 previousMarker.value += value;
                 if (previousMarker.renderNode) {
@@ -257,9 +282,9 @@ var DOMParser = (function () {
                 section.renderNode.childNodes.insertBefore(newPreviousRenderNode, renderNode);
               }
             }
-            if (tailTextNode.textContent !== _renderersEditorDom.ZWNJ) {
-              var value = tailTextNode.textContent.replace(new RegExp(_renderersEditorDom.ZWNJ, 'g'), '');
-              tailTextNode.textContent = _renderersEditorDom.ZWNJ;
+            if (tailTextNode.textContent !== _renderersEditorDom2.ZWNJ) {
+              var value = tailTextNode.textContent.replace(new RegExp(_renderersEditorDom2.ZWNJ, 'g'), '');
+              tailTextNode.textContent = _renderersEditorDom2.ZWNJ;
 
               if (renderNode.postNode.next && renderNode.postNode.next.isMarker) {
                 var nextMarker = renderNode.postNode.next;
@@ -292,9 +317,8 @@ var DOMParser = (function () {
             }
           }
         } else if ((0, _utilsDomUtils.isTextNode)(node)) {
-          var text = transformHTMLText(node.textContent);
           var markups = _this4.collectMarkups(node, element);
-          marker = _this4.builder.createMarker(text, markups);
+          marker = _this4.builder.createMarker(_renderersEditorDom2.ZWNJ, markups);
 
           renderNode = renderTree.buildRenderNode(marker);
           renderNode.element = node;

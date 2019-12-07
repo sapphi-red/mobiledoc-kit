@@ -4,11 +4,11 @@ var _createClass = (function () { function defineProperties(target, props) { for
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-var _utilsAssert = require('../utils/assert');
+var _utilsAssert = require('..\\utils\\assert');
 
-var _modelsTypes = require('../models/types');
+var _modelsTypes = require('..\\models\\types');
 
-var _modelsMarkupSection = require('../models/markup-section');
+var _modelsMarkupSection = require('..\\models\\markup-section');
 
 var UL_LI_REGEX = /^\* (.*)$/;
 var OL_LI_REGEX = /^\d\.? (.*)$/;
@@ -74,10 +74,12 @@ var TextParser = (function () {
 
       switch (type) {
         case _modelsTypes.LIST_SECTION_TYPE:
-          var item = this.builder.createListItem(markers);
-          var list = this.builder.createListSection(tagName, [item]);
-          section = list;
-          break;
+          {
+            var item = this.builder.createListItem(markers);
+            var list = this.builder.createListSection(tagName, [item]);
+            section = list;
+            break;
+          }
         case _modelsTypes.MARKUP_SECTION_TYPE:
           section = this.builder.createMarkupSection(tagName, markers);
           break;

@@ -2,11 +2,11 @@
 
 exports['default'] = toRange;
 
-var _utilsCursorRange = require('../utils/cursor/range');
+var _utilsCursorRange = require('..\\utils\\cursor\\range');
 
-var _utilsCursorPosition = require('../utils/cursor/position');
+var _utilsCursorPosition = require('..\\utils\\cursor\\position');
 
-var _utilsAssert = require('../utils/assert');
+var _utilsAssert = require('..\\utils\\assert');
 
 function toRange(rangeLike) {
   (0, _utilsAssert['default'])('Must pass non-blank object to "toRange"', !!rangeLike);

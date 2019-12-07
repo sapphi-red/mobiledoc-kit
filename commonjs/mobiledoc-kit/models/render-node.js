@@ -8,13 +8,13 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-var _utilsLinkedItem = require('../utils/linked-item');
+var _utilsLinkedItem = require('..\\utils\\linked-item');
 
-var _utilsLinkedList = require('../utils/linked-list');
+var _utilsLinkedList = require('..\\utils\\linked-list');
 
-var _utilsDomUtils = require('../utils/dom-utils');
+var _utilsDomUtils = require('..\\utils\\dom-utils');
 
-var _utilsAssert = require('../utils/assert');
+var _utilsAssert = require('..\\utils\\assert');
 
 var RenderNode = (function (_LinkedItem) {
   _inherits(RenderNode, _LinkedItem);

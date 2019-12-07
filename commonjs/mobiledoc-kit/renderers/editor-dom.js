@@ -8,11 +8,11 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-var _modelsCardNode = require('../models/card-node');
+var _modelsCardNode = require('..\\models\\card-node');
 
-var _utilsArrayUtils = require('../utils/array-utils');
+var _utilsArrayUtils = require('..\\utils\\array-utils');
 
-var _modelsAtomNode = require('../models/atom-node');
+var _modelsAtomNode = require('..\\models\\atom-node');
 
 var _modelsTypes = require('../models/types');
 
@@ -24,7 +24,7 @@ var _modelsMarkupSection = require('../models/markup-section');
 
 var _utilsAssert = require('../utils/assert');
 
-var _utilsCharacters = require('../utils/characters');
+var _utilsCharacters = require('..\\utils\\characters');
 
 var CARD_ELEMENT_CLASS_NAME = '__mobiledoc-card';
 exports.CARD_ELEMENT_CLASS_NAME = CARD_ELEMENT_CLASS_NAME;
@@ -92,6 +92,12 @@ function penultimateParentOf(element, parentElement) {
   return element;
 }
 
+function setSectionAttributesOnElement(section, element) {
+  section.eachAttribute(function (key, value) {
+    element.setAttribute(key, value);
+  });
+}
+
 function renderMarkupSection(section) {
   var element = undefined;
   if (_modelsMarkupSection.MARKUP_SECTION_ELEMENT_NAMES.indexOf(section.tagName) !== -1) {
@@ -101,11 +107,17 @@ function renderMarkupSection(section) {
     (0, _utilsDomUtils.addClassName)(element, section.tagName);
   }
 
+  setSectionAttributesOnElement(section, element);
+
   return element;
 }
 
 function renderListSection(section) {
-  return document.createElement(section.tagName);
+  var element = document.createElement(section.tagName);
+
+  setSectionAttributesOnElement(section, element);
+
+  return element;
 }
 
 function renderListItem() {
@@ -635,7 +647,6 @@ var Renderer = (function () {
 
         method = postNode.type;
         (0, _utilsAssert['default'])('EditorDom visitor cannot handle type ' + method, !!this.visitor[method]);
-        // jshint -W083
         this.visitor[method](renderNode, postNode, function () {
           for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
             args[_key] = arguments[_key];
@@ -643,7 +654,6 @@ var Renderer = (function () {
 
           return _this2.visit.apply(_this2, [renderTree].concat(args));
         });
-        // jshint +W083
         renderNode.markClean();
         renderNode = this.nodes.shift();
       }
